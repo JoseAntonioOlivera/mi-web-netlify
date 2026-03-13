@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mi web en Netlify</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 24px;">
+  <h1>Hola Netlify</h1>
+  <p>Esto es una prueba de despliegue.</p>
+  <p>Fecha: <span id="fecha"></span></p>
+
+  <script>
+    document.getElementById('fecha').textContent = new Date().toLocaleString();
+  </script>
+</body>
+</html>
