@@ -3,15 +3,633 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mi web en Netlify</title>
-</head>
-<body style="font-family: Arial, sans-serif; margin: 24px;">
-  <h1>Hola Netlify</h1>
-  <p>Esto es una prueba de despliegue.</p>
-  <p>Fecha: <span id="fecha"></span></p>
+  <title>Currículum Vitae</title>
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  <script>
-    document.getElementById('fecha').textContent = new Date().toLocaleString();
-  </script>
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #554ed4;
+      --accent: #00d2ff;
+      --bg: #0f0f1a;
+      --bg-card: #1a1a2e;
+      --bg-card-hover: #22223a;
+      --text: #e8e8f0;
+      --text-muted: #9d9db5;
+      --border: rgba(108,99,255,.25);
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0,0,0,.35);
+      --transition: .3s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background ── */
+    .bg-animation {
+      position: fixed; inset: 0; z-index: -1; overflow: hidden;
+    }
+    .bg-animation span {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: .15;
+      animation: float 20s infinite ease-in-out;
+    }
+    .bg-animation span:nth-child(1) {
+      width: 600px; height: 600px; background: var(--primary);
+      top: -10%; left: -5%; animation-delay: 0s;
+    }
+    .bg-animation span:nth-child(2) {
+      width: 400px; height: 400px; background: var(--accent);
+      top: 50%; right: -5%; animation-delay: -7s;
+    }
+    .bg-animation span:nth-child(3) {
+      width: 500px; height: 500px; background: #ff6584;
+      bottom: -10%; left: 30%; animation-delay: -14s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.05); }
+      66% { transform: translate(-20px, 30px) scale(.95); }
+    }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(15,15,26,.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 64px;
+    }
+    .nav-logo {
+      font-weight: 700; font-size: 1.25rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links { display: flex; gap: 8px; list-style: none; }
+    .nav-links a {
+      color: var(--text-muted); text-decoration: none; font-size: .9rem;
+      padding: 8px 14px; border-radius: 8px; transition: var(--transition);
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--text); background: rgba(108,99,255,.15);
+    }
+    .hamburger {
+      display: none; background: none; border: none; cursor: pointer;
+      flex-direction: column; gap: 5px; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px; background: var(--text);
+      border-radius: 2px; transition: var(--transition);
+    }
+
+    /* ── Main Container ── */
+    main {
+      max-width: 1100px; margin: 0 auto; padding: 88px 24px 60px;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 64px;
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .section.visible { opacity: 1; transform: translateY(0); }
+
+    .section-title {
+      font-size: 1.75rem; font-weight: 700; margin-bottom: 32px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title .icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .section-title::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    /* ── Hero / Personal Info ── */
+    .hero {
+      display: flex; align-items: center; gap: 40px;
+      padding: 48px; border-radius: var(--radius);
+      background: var(--bg-card); border: 1px solid var(--border);
+      box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+    .hero-avatar {
+      width: 150px; height: 150px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: grid; place-items: center; font-size: 3.5rem; flex-shrink: 0;
+      box-shadow: 0 0 40px rgba(108,99,255,.3);
+      position: relative;
+    }
+    .hero-avatar::after {
+      content: ''; position: absolute; inset: -4px; border-radius: 50%;
+      border: 2px solid rgba(108,99,255,.3);
+      animation: pulse-ring 2.5s infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+    .hero-info h1 {
+      font-size: 2.5rem; font-weight: 800;
+      background: linear-gradient(135deg, #fff, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-info .tagline {
+      font-size: 1.2rem; color: var(--primary); font-weight: 500;
+      margin: 4px 0 16px;
+    }
+    .hero-info .bio { color: var(--text-muted); max-width: 520px; margin-bottom: 20px; }
+    .contact-badges { display: flex; flex-wrap: wrap; gap: 10px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 999px; font-size: .85rem;
+      background: rgba(108,99,255,.12); border: 1px solid var(--border);
+      color: var(--text-muted); transition: var(--transition);
+    }
+    .badge:hover { background: rgba(108,99,255,.25); color: var(--text); }
+
+    /* ── Skills / Tags ── */
+    .skills-grid {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;
+    }
+    .skill-tag {
+      padding: 8px 18px; border-radius: 999px; font-size: .85rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text); transition: var(--transition); cursor: default;
+    }
+    .skill-tag:hover {
+      border-color: var(--primary); background: rgba(108,99,255,.15);
+      transform: translateY(-2px);
+    }
+
+    /* ── Timeline (Experience & Education) ── */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px;
+      width: 2px; background: linear-gradient(180deg, var(--primary), var(--accent));
+      border-radius: 2px;
+    }
+    .timeline-item {
+      position: relative; margin-bottom: 32px;
+      padding: 24px; border-radius: var(--radius);
+      background: var(--bg-card); border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    .timeline-item:hover {
+      background: var(--bg-card-hover); border-color: var(--primary);
+      transform: translateX(6px);
+    }
+    .timeline-item::before {
+      content: ''; position: absolute; left: -29px; top: 28px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--primary); border: 3px solid var(--bg);
+      box-shadow: 0 0 12px rgba(108,99,255,.5);
+    }
+    .timeline-date {
+      display: inline-block; font-size: .8rem; font-weight: 600;
+      padding: 3px 12px; border-radius: 999px; margin-bottom: 8px;
+      background: rgba(108,99,255,.15); color: var(--primary);
+    }
+    .timeline-item h3 { font-size: 1.15rem; margin-bottom: 2px; }
+    .timeline-item .subtitle { color: var(--primary); font-size: .95rem; margin-bottom: 8px; }
+    .timeline-item p { color: var(--text-muted); font-size: .9rem; }
+    .timeline-item ul { color: var(--text-muted); font-size: .9rem; margin-top: 8px; padding-left: 18px; }
+    .timeline-item li { margin-bottom: 4px; }
+
+    /* ── Projects Grid ── */
+    .projects-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .project-card {
+      border-radius: var(--radius); overflow: hidden;
+      background: var(--bg-card); border: 1px solid var(--border);
+      transition: var(--transition);
+      display: flex; flex-direction: column;
+    }
+    .project-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--primary);
+      box-shadow: 0 20px 40px rgba(108,99,255,.15);
+    }
+    .project-img {
+      width: 100%; height: 200px; object-fit: cover;
+      background: linear-gradient(135deg, rgba(108,99,255,.2), rgba(0,210,255,.2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: rgba(255,255,255,.3);
+      position: relative; overflow: hidden;
+    }
+    .project-img img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .5s ease;
+    }
+    .project-card:hover .project-img img { transform: scale(1.05); }
+    .project-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+    .project-body h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .project-body p { color: var(--text-muted); font-size: .9rem; flex: 1; margin-bottom: 16px; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .project-tags span {
+      padding: 3px 10px; border-radius: 999px; font-size: .75rem;
+      background: rgba(0,210,255,.1); color: var(--accent); border: 1px solid rgba(0,210,255,.2);
+    }
+    .project-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--primary); text-decoration: none; font-size: .9rem; font-weight: 600;
+      transition: var(--transition);
+    }
+    .project-link:hover { color: var(--accent); gap: 10px; }
+    .project-link::after { content: '\2192'; transition: var(--transition); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 32px 24px; margin-top: 40px;
+      border-top: 1px solid var(--border); color: var(--text-muted); font-size: .85rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hero { flex-direction: column; text-align: center; padding: 32px 24px; gap: 24px; }
+      .hero-avatar { width: 120px; height: 120px; font-size: 2.8rem; }
+      .hero-info h1 { font-size: 1.8rem; }
+      .contact-badges { justify-content: center; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .nav-links.open {
+        display: flex; flex-direction: column;
+        position: absolute; top: 64px; left: 0; right: 0;
+        background: rgba(15,15,26,.95); backdrop-filter: blur(20px);
+        padding: 16px; border-bottom: 1px solid var(--border);
+      }
+      .hamburger { display: flex; }
+    }
+
+    /* ── Scroll indicator ── */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 3px; z-index: 101;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0%; transition: width .1s linear;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background blobs -->
+  <div class="bg-animation"><span></span><span></span><span></span></div>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- Navigation -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <span class="nav-logo">Mi CV</span>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#sobre-mi">Sobre mí</a></li>
+        <li><a href="#experiencia">Experiencia</a></li>
+        <li><a href="#proyectos">Proyectos</a></li>
+        <li><a href="#educacion">Educación</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ═══ HERO / DATOS PERSONALES ═══ -->
+    <section class="section" id="sobre-mi">
+      <div class="hero">
+        <div class="hero-avatar" id="avatarInitials"></div>
+        <div class="hero-info">
+          <h1 id="heroName"></h1>
+          <div class="tagline" id="heroTagline"></div>
+          <p class="bio" id="heroBio"></p>
+          <div class="contact-badges" id="heroBadges"></div>
+        </div>
+      </div>
+      <div style="margin-top:32px;">
+        <h3 style="font-size:1.1rem; margin-bottom:12px; color:var(--text-muted);">Habilidades</h3>
+        <div class="skills-grid" id="skillsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ═══ EXPERIENCIA ═══ -->
+    <section class="section" id="experiencia">
+      <h2 class="section-title"><span class="icon">&#128188;</span> Experiencia Profesional</h2>
+      <div class="timeline" id="experienceTimeline"></div>
+    </section>
+
+    <!-- ═══ PROYECTOS ═══ -->
+    <section class="section" id="proyectos">
+      <h2 class="section-title"><span class="icon">&#128640;</span> Proyectos</h2>
+      <div class="projects-grid" id="projectsGrid"></div>
+    </section>
+
+    <!-- ═══ EDUCACIÓN ═══ -->
+    <section class="section" id="educacion">
+      <h2 class="section-title"><span class="icon">&#127891;</span> Educación</h2>
+      <div class="timeline" id="educationTimeline"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; <span id="footerYear"></span> — Currículum generado dinámicamente</p>
+  </footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATOS DEL CV — Edita aquí tu información
+   ═══════════════════════════════════════════ */
+
+const cvData = {
+  personal: {
+    nombre: "Ana García López",
+    titulo: "Desarrolladora Full Stack",
+    bio: "Apasionada por crear soluciones digitales innovadoras con más de 5 años de experiencia en desarrollo web. Enfocada en rendimiento, accesibilidad y experiencia de usuario.",
+    email: "ana.garcia@email.com",
+    telefono: "+34 612 345 678",
+    ubicacion: "Madrid, España",
+    linkedin: "linkedin.com/in/anagarcia",
+    github: "github.com/anagarcia",
+    web: "anagarcia.dev"
+  },
+
+  habilidades: [
+    "JavaScript", "TypeScript", "React", "Vue.js", "Node.js",
+    "Python", "PostgreSQL", "MongoDB", "Docker", "AWS",
+    "Git", "CI/CD", "REST APIs", "GraphQL", "Figma",
+    "HTML5", "CSS3", "Tailwind CSS"
+  ],
+
+  experiencia: [
+    {
+      puesto: "Desarrolladora Full Stack Senior",
+      empresa: "TechCorp Solutions",
+      fecha: "2023 — Presente",
+      descripcion: "Liderazgo técnico de un equipo de 5 desarrolladores en proyectos de alto impacto.",
+      logros: [
+        "Rediseñó la arquitectura del frontend reduciendo los tiempos de carga en un 40%",
+        "Implementó pipelines de CI/CD que aceleraron los despliegues en un 60%",
+        "Desarrolló un sistema de microservicios para procesar +100K transacciones diarias"
+      ]
+    },
+    {
+      puesto: "Desarrolladora Frontend",
+      empresa: "Digital Innovations S.L.",
+      fecha: "2021 — 2023",
+      descripcion: "Desarrollo de interfaces de usuario para aplicaciones SaaS empresariales.",
+      logros: [
+        "Construyó un design system utilizado por 3 equipos de producto",
+        "Migró la aplicación principal de jQuery a React mejorando la mantenibilidad",
+        "Integró pruebas automatizadas alcanzando un 85% de cobertura"
+      ]
+    },
+    {
+      puesto: "Desarrolladora Junior",
+      empresa: "StartApp Studio",
+      fecha: "2019 — 2021",
+      descripcion: "Desarrollo web para clientes del sector retail y hostelería.",
+      logros: [
+        "Creó más de 15 sitios web responsivos para diferentes clientes",
+        "Automatizó procesos de despliegue ahorrando 10 horas semanales",
+        "Participó en el desarrollo de una app móvil con +50K descargas"
+      ]
+    }
+  ],
+
+  proyectos: [
+    {
+      nombre: "TaskFlow Pro",
+      descripcion: "Aplicación de gestión de proyectos con tableros Kanban, seguimiento de tiempo y reportes en tiempo real. Construida con React, Node.js y WebSockets.",
+      imagen: "",
+      enlace: "https://github.com/ejemplo/taskflow",
+      tags: ["React", "Node.js", "WebSockets", "MongoDB"]
+    },
+    {
+      nombre: "EcoTracker",
+      descripcion: "Plataforma para monitorear la huella de carbono personal con visualizaciones interactivas y recomendaciones personalizadas basadas en IA.",
+      imagen: "",
+      enlace: "https://github.com/ejemplo/ecotracker",
+      tags: ["Vue.js", "Python", "D3.js", "Machine Learning"]
+    },
+    {
+      nombre: "CloudDeploy CLI",
+      descripcion: "Herramienta de línea de comandos para simplificar despliegues multi-cloud con soporte para AWS, GCP y Azure. Publicada como paquete npm con +2K descargas.",
+      imagen: "",
+      enlace: "https://github.com/ejemplo/clouddeploy",
+      tags: ["Node.js", "AWS", "GCP", "CLI"]
+    }
+  ],
+
+  educacion: [
+    {
+      titulo: "Máster en Ingeniería de Software",
+      institucion: "Universidad Politécnica de Madrid",
+      fecha: "2017 — 2019",
+      descripcion: "Especialización en arquitectura de software y sistemas distribuidos. Tesis sobre optimización de microservicios."
+    },
+    {
+      titulo: "Grado en Ingeniería Informática",
+      institucion: "Universidad Complutense de Madrid",
+      fecha: "2013 — 2017",
+      descripcion: "Graduada con mención de honor. Participación activa en competiciones de programación y grupo de investigación en IA."
+    },
+    {
+      titulo: "Certificación AWS Solutions Architect",
+      institucion: "Amazon Web Services",
+      fecha: "2022",
+      descripcion: "Certificación profesional en diseño de arquitecturas escalables y resilientes en la nube."
+    }
+  ]
+};
+
+/* ═══════════════════════════════════════════
+   RENDERIZADO DINÁMICO
+   ═══════════════════════════════════════════ */
+
+function getInitials(name) {
+  return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
+function renderPersonal(data) {
+  document.getElementById('avatarInitials').textContent = getInitials(data.nombre);
+  document.getElementById('heroName').textContent = data.nombre;
+  document.getElementById('heroTagline').textContent = data.titulo;
+  document.getElementById('heroBio').textContent = data.bio;
+
+  const badges = [];
+  if (data.email) badges.push({ icon: '&#9993;', text: data.email });
+  if (data.telefono) badges.push({ icon: '&#128222;', text: data.telefono });
+  if (data.ubicacion) badges.push({ icon: '&#128205;', text: data.ubicacion });
+  if (data.linkedin) badges.push({ icon: '&#128279;', text: data.linkedin });
+  if (data.github) badges.push({ icon: '&#128187;', text: data.github });
+  if (data.web) badges.push({ icon: '&#127760;', text: data.web });
+
+  document.getElementById('heroBadges').innerHTML = badges
+    .map(b => `<span class="badge">${b.icon} ${b.text}</span>`)
+    .join('');
+
+  document.querySelector('.nav-logo').textContent = data.nombre.split(' ')[0];
+}
+
+function renderSkills(skills) {
+  document.getElementById('skillsGrid').innerHTML = skills
+    .map(s => `<span class="skill-tag">${s}</span>`)
+    .join('');
+}
+
+function renderExperience(items) {
+  document.getElementById('experienceTimeline').innerHTML = items.map(item => `
+    <div class="timeline-item">
+      <span class="timeline-date">${item.fecha}</span>
+      <h3>${item.puesto}</h3>
+      <div class="subtitle">${item.empresa}</div>
+      <p>${item.descripcion}</p>
+      ${item.logros ? `<ul>${item.logros.map(l => `<li>${l}</li>`).join('')}</ul>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderProjects(items) {
+  const placeholderColors = ['#6c63ff','#00d2ff','#ff6584','#36d399','#f5a623'];
+  document.getElementById('projectsGrid').innerHTML = items.map((item, i) => {
+    const color = placeholderColors[i % placeholderColors.length];
+    const imgContent = item.imagen
+      ? `<img src="${item.imagen}" alt="${item.nombre}" loading="lazy">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+          background:linear-gradient(135deg,${color}33,${color}11);font-size:3rem;color:${color}55;">&#128196;</div>`;
+    return `
+      <div class="project-card">
+        <div class="project-img">${imgContent}</div>
+        <div class="project-body">
+          <h3>${item.nombre}</h3>
+          <p>${item.descripcion}</p>
+          <div class="project-tags">${(item.tags || []).map(t => `<span>${t}</span>`).join('')}</div>
+          ${item.enlace ? `<a class="project-link" href="${item.enlace}" target="_blank" rel="noopener">Ver proyecto</a>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderEducation(items) {
+  document.getElementById('educationTimeline').innerHTML = items.map(item => `
+    <div class="timeline-item">
+      <span class="timeline-date">${item.fecha}</span>
+      <h3>${item.titulo}</h3>
+      <div class="subtitle">${item.institucion}</div>
+      <p>${item.descripcion}</p>
+    </div>
+  `).join('');
+}
+
+/* ═══ Initialize ═══ */
+renderPersonal(cvData.personal);
+renderSkills(cvData.habilidades);
+renderExperience(cvData.experiencia);
+renderProjects(cvData.proyectos);
+renderEducation(cvData.educacion);
+document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+/* ═══════════════════════════════════════════
+   INTERACTIVIDAD
+   ═══════════════════════════════════════════ */
+
+// Scroll progress bar
+window.addEventListener('scroll', () => {
+  const scrollTop = document.documentElement.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const progress = (scrollTop / scrollHeight) * 100;
+  document.getElementById('scrollProgress').style.width = progress + '%';
+});
+
+// Nav shadow on scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// Active nav link highlighting
+const navLinksEl = document.querySelectorAll('.nav-links a');
+const sections = document.querySelectorAll('.section');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => {
+    if (window.scrollY >= sec.offsetTop - 120) current = sec.getAttribute('id');
+  });
+  navLinksEl.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+
+// Mobile menu toggle
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
+
+// Intersection Observer for scroll animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.section').forEach(sec => observer.observe(sec));
+
+// Staggered animation for timeline items and project cards
+const staggerObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }, i * 100);
+      staggerObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.05 });
+
+document.querySelectorAll('.timeline-item, .project-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity .5s ease, transform .5s ease';
+  staggerObserver.observe(el);
+});
+</script>
+
 </body>
 </html>
