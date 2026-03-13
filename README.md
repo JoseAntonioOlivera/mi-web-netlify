@@ -1,1 +1,1 @@
-Enlace de la web en Netlify: https://curriculumyportfolio.netlify.app/
+Enlace de la web en Netlify: oliverajaen.netlify.app
